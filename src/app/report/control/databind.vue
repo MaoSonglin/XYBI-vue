@@ -1,68 +1,54 @@
 <template>
 	<div class="container">
+		<el-button type="primary" size="small" @click="add()">添加</el-button>
+		<el-button type="danger" size="small" v-if="cur" @click="remove()">删除</el-button>
 		<el-form label-position="right" label-width="100px" label-suffix=":" size="small">
-			<serie v-for="(serie, index) in series" :key="index" :serie="serie"
-				:tables="tables" v-on:remove="remove(index)" v-on:addField="addField($event)"
-				 v-on:removeField="removeField($event)"></serie>
-			<el-form-item>
-				<el-button @click="add()">添加</el-button>
-			</el-form-item>
+			<serie v-for="(serie, index) in option.series" :key="index" @encodeChange="optionChange"
+			 :serie="serie" :fields="control.fields" v-on:remove="remove(index)"></serie> 
 		</el-form>
 	</div>
 </template>
 
 <script>
 	import serie from './item/serie'
+	import MyUtils from '../../../utils/MyUtils.js'
 	export default {
 		name: 'databind',
 		components:{ serie },
 		props: {
-			series: {
-				type: Array,
-				default() {
-					return []
-				}
-			},
-			tables: {
-				type: Array,
+			option: {
+				type: Object,
 				required: true
-			},
+			}, 
 			control: {
 				type: Object,
-				default:() => {}
+				required: true
+			}
+		},
+		data() {
+			return {
+				cur: null
 			}
 		},
 		created() {
-			
+			if(! this.option.series ){
+				this.option.series = []
+			}
 		},
 		methods:{
 			add() {
-				this.series.push({ encode:{ x: [], y: [], value: [] } })
-				this.$emit('serieChange')
+				this.option.series.push({ encode:{ x: [], y: [], value: [] } }) 
+				this.optionChange()
 			},
 			remove(index) {
-				let serie = this.series[index]
-				this.series.splice(index,1)
-				this.$emit('serieChange')
-				let x = serie.encode.x
-				for(let i in x){
-					
-				}
+				this.option.series.splice(index,1)
+				this.cur = null
+				this.optionChange()
 			},
-			addField(id) {
-				this.$http.post('/element/add/data',{ elementId: this.control.id, viewFieldId: id}).then(res => {
+			optionChange(){
+				this.control.setting = JSON.stringify(this.option)
+				this.$http.post('/element/update', MyUtils.flatten(this.control)).then(res => {
 					console.log(res.message)
-					if(res.code === 20000){
-						this.$emit('serieChange')
-					}
-				})
-			},
-			removeField(id) {
-				this.$http.post('/element/remove/field',{ elementId: this.control.id, viewFieldId: id}).then(res => {
-					console.log(res.message)
-					if(res.code === 20000){
-						this.$emit('serieChange')
-					}
 				})
 			}
 		}

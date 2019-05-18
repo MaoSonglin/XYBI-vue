@@ -1,9 +1,9 @@
 <template>
 	<div class="control" :style="{ top: position.top+'px', left: position.left+'px', width: position.width+'px', height: position.height+'px', cursor: isMove ? 'pointer;':'' , 'background-color': isMove? 'rgba(12,12,12,0.1)':'', 'border': isResize ? 'black 1px solid':''}"
-	 @mousedown="startMove($event)" @mouseup="() => isMove = false" @mouseout="() => isMove = false">
+	 @mousedown="startMove($event)" @mouseup="sendMsg()" >
 		<div class="echart-container" ref='echart'></div>
 		<div class="x-menu-bar">
-			<i class="el-icon el-icon-setting" title="设置" @click="startSetting"></i>
+			<i class="el-icon el-icon-setting" title="设置" @click="startSetting($event)"></i>
 		</div>
 		<div style="z-index: 200; position: absolute;top: 0; left: 0;width: 100%; height: 100%;">
 			<div @mousedown="startResize($event)" class="loc loc-nw" :style="{ 'margin-top': '-2.5px', 'margin-left': '-2.5px', left: 0, top: 0}"></div>
@@ -85,7 +85,7 @@
 			this.position.width = this.clientWith * this.element.width / 100
 			this.position.height = this.clientHeight * this.element.height / 100
 			document.addEventListener('mousemove', e => {this.move(e)})
-			document.addEventListener('mouseup',(e) => {
+			document.addEventListener('mouseup',(e) => { 
 				this.isMove = false
 				this.isResize = false
 			})
@@ -132,26 +132,12 @@
 						this.position.width += event.movementX
 						this.position.height += event.movementY
 						break;
-					}
-					this.$emit('update',{
-						...this.element,
-						marginTop: this.position.top * 100 / this.clientHeight,
-						marginLeft: this.position.left * 100 / this.clientWith,
-						width: this.position.width * 100 / this.clientWith,
-						height: this.position.height * 100 / this.clientHeight
-					})
+					} 
 				}
 
 				if(!this.isMove) return
 				this.position.left += event.movementX 
 				this.position.top += event.movementY  
-				this.$emit('positionChange',{
-					...this.element,
-					marginTop: this.position.top * 100 / this.clientHeight,
-					marginLeft: this.position.left * 100 / this.clientWith,
-					width: this.position.width * 100 / this.clientWith,
-					height: this.position.height * 100 / this.clientHeight
-				})
 			},
 			startResize(event){ 
 				this.isResize = true
@@ -175,6 +161,17 @@
 			startSetting(e) { 
 				this.$emit('setting',this.option)
 				e.stopPropagation()
+			},
+			sendMsg() {
+				if(this.isMove || this.isResize){
+					this.$emit('positionChange',{
+						...this.element,
+						marginTop: this.position.top * 100 / this.clientHeight,
+						marginLeft: this.position.left * 100 / this.clientWith,
+						width: this.position.width * 100 / this.clientWith,
+						height: this.position.height * 100 / this.clientHeight
+					})
+				}
 			}
 		},
 		watch:{

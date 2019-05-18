@@ -20,7 +20,7 @@
 		</el-col>
 		<el-col :md="8">
 			<el-form-item label="坐标系">
-				<el-input-number v-model="axis.gridIndex" step="1"></el-input-number>
+				<el-input-number v-model="axis.gridIndex" :step="1"></el-input-number>
 			</el-form-item>
 		</el-col>
 		<el-col :md="8">

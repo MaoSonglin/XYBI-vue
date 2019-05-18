@@ -1,5 +1,7 @@
 <template>
-	<el-row class="this-row">
+	<div @click="() => $emit('choose')">
+		
+	<el-row class="this-row" >
 		<el-col :md="7">
 			<el-form-item label="类型">
 				<el-select v-model="serie.type" >
@@ -11,38 +13,26 @@
 		</el-col>
 		<el-col :md="7" v-if="serie.type !== 'pie'">
 			<el-form-item label="X轴数据">
-				<el-select v-model="serie.encode.x" multiple @change="change" @remove-tag="removeField">
-					<el-option-group v-for="table in tables" :key="table.id"
-						:label="table.viewZhChName ? table.viewZhChName:table.name"
-						:value="table.id">
-						<el-option v-for="(item,index) in table.fields"
-						 :key="index" :label="item.fieldName ? item.fieldName:item.fieldZhChName" :value="item.id"></el-option>
-					</el-option-group>
+				<el-select v-model="serie.encode.x" multiple>
+					<el-option v-for="(item,index) in fields"
+					 :key="index" :label="item.fieldName ? item.fieldName:item.fieldZhChName" :value="item.id"></el-option>
 				</el-select>
 			</el-form-item>
 		</el-col>
 		<el-col :md="7" v-if="serie.type !== 'pie'">
 			<el-form-item label="Y轴数据" >
-				<el-select v-model="serie.encode.y" multiple @change="change" @remove-tag="removeField">
-					<el-option-group v-for="table in tables" :key="table.id"
-						:label="table.viewZhChName ? table.viewZhChName:table.name"
-						:value="table.id">
-						<el-option v-for="(item,index) in table.fields"
-						 :key="index" :label="item.fieldName ? item.fieldName:item.fieldZhChName" :value="item.id"></el-option>
-					</el-option-group>
+				<el-select v-model="serie.encode.y" multiple>
+					<el-option v-for="(item,index) in fields"
+					 :key="index" :label="item.fieldName ? item.fieldName:item.fieldZhChName" :value="item.id"></el-option>
 				</el-select>
 			</el-form-item>
 		</el-col>
 		<template v-if="serie.type === 'pie'">
 			<el-col :md="7" >
 				<el-form-item label="数据" >
-					<el-select v-model="serie.encode.value" multiple @change="change" @remove-tag="removeField">
-						<el-option-group v-for="table in tables" :key="table.id"
-							:label="table.viewZhChName ? table.viewZhChName:table.name"
-							:value="table.id">
-							<el-option v-for="(item,index) in table.fields"
-							 :key="index" :label="item.fieldName ? item.fieldName:item.fieldZhChName" :value="item.id"></el-option>
-						</el-option-group>
+					<el-select v-model="serie.encode.value" multiple>
+						<el-option v-for="(item,index) in fields"
+						 :key="index" :label="item.fieldName ? item.fieldName:item.fieldZhChName" :value="item.id"></el-option>
 					</el-select>
 				</el-form-item>
 			</el-col>
@@ -57,10 +47,12 @@
 				</el-form-item>
 			</el-col> -->
 		</template>
-		<el-col :md="3">
-			<el-button size="mini" type="danger" @click="() => $emit('remove')">删除</el-button>
-		</el-col>
+		 <el-col :md="3">
+			 <el-button size="small" @click="() => $emit('remove')">删除</el-button>
+		 </el-col>
 	</el-row>
+	</div>
+
 </template>
 
 <script>
@@ -85,11 +77,9 @@
 					}
 				}
 			},
-			tables: {
+			fields: {
 				type: Array,
-				default() {
-					return [{ id: 1, name: '嘻嘻嘻'},{ id: 2, name: '哈哈哈'},{ id: 3, name: '嘿嘿嘿'}]
-				}
+				required: true
 			}
 		},
 		data() {
@@ -100,19 +90,13 @@
 		created() { 
 		},
 		methods:{
-			change(val) {
-				for(let i in val){
-					this.$emit('addField', val[i])
-				}
-			},
-			removeField(id) {
-				this.$emit('removeField',id)
-			}
+			 
 		},
 		watch:{
 			'serie.encode': {
 				handler(val, oldVal){
 					console.log(val,oldVal)
+					this.$emit('encodeChange', val)
 				},
 				deep: true
 			}

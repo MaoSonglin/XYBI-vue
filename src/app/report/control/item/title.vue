@@ -1,4 +1,6 @@
 <template>
+	<div>
+		
 	<el-row :gutter="10" >
 		<el-col :md="8">
 			<el-form-item label="标题">
@@ -7,19 +9,19 @@
 		</el-col>
 		<el-col :md="8">
 			<el-form-item label="子标题">
-				<el-input v-model="title.subText" placeholder="subtitle"></el-input>
+				<el-input v-model="title.subtext" placeholder="subtitle"></el-input>
 			</el-form-item>
 		</el-col>
 		<el-col :md="8">
 			<el-form-item label="显示">
 				<el-switch
 				  v-model="title.show"
-				  active-color="#13ce66"
-				  inactive-color="#ff4949">
+				  active-color="#13ce66">
 				</el-switch>
 			</el-form-item>
 		</el-col>
-		
+	</el-row>
+	<el-row :gutter="10">
 		<el-col :md="8">
 			<el-form-item label="水平位置">
 				<el-select v-model="title.left">
@@ -46,6 +48,8 @@
 			</el-form-item>
 		</el-col>
 	</el-row>
+	</div>
+
 </template>
 
 <script>

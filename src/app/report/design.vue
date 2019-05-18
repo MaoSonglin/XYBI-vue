@@ -22,7 +22,16 @@
 		<el-dialog :title="dialog.title" width="80%" top="100px" :visible="dialog.visiable" :before-close="() => dialog.visiable=false" @click="($event) => $event.stopPropagation()">
 			<el-tabs>
 				<el-tab-pane label="数据">
-					<databind :series="dialog.option.series" :tables="tables" :control="dialog.control" v-on:serieChange="optionChange"></databind>
+					<el-select v-model="transfer.tableId" @change="setOption" clearable="">
+						<el-option :key="tab.id" :value="tab.id" v-for="tab in tables" :label="tab.viewName"></el-option>
+					</el-select>
+					<el-transfer v-model="transfer.value" :data="transfer.fields"
+					 :props="transfer.props" filterable :titles="['添加字段', '移除字段']"
+					 @change="modifyField"></el-transfer>
+					<!-- <databind :series="dialog.option.series" :tables="tables" :control="dialog.control" v-on:serieChange="optionChange"></databind> -->
+				</el-tab-pane>
+				<el-tab-pane label="显示">
+					<databind :control="dialog.control" :option="dialog.option"></databind>
 				</el-tab-pane>
 				<el-tab-pane label="属性">
 					<echartOption :option="dialog.option" v-on:optionChange="optionChange"></echartOption>
@@ -54,9 +63,16 @@
 				dialog: {
 					title: '新建',
 					visiable: false,
-					option: {}
+					option: {},
+					control: {}
 				},
-				tables: []
+				tables: [],
+				transfer: {
+					tableId: null,
+					fields: [],
+					value: [],
+					props: { key: 'id', label: 'fieldName'}
+				}
 			}
 		},
 		created() {
@@ -72,8 +88,23 @@
 			createNew(type) {
 				// this.$message({ type: 'success', message: type})
 				this.dialog.visiable = true
-				this.dialog.option = template[type]
-				this.dialog.title = '新建'
+				this.dialog.option = template[type] 
+				let item = { 
+					name: '',
+					marginLeft: 10,
+					marginTop: 10,
+					width: 50,
+					height: 50,
+					reportId: this.reportId,
+					setting: JSON.stringify(this.dialog.option)
+				}
+				this.$http.post('/element/add',MyUtils.flatten(item)).then(res => {
+					if(res.code === 20000){
+						this.$message({ type: 'success', message: res.message })
+						this.list.push(res.data)
+						this.dialog.control = res.data
+					}
+				})
 			},
 			getList() { // 获取报表中的元素控件
 				this.$http.get('/element/getByReport',{ params: { reportId: this.reportId }}).then(res => {
@@ -86,23 +117,7 @@
 				})
 			},
 			confirm() {
-				if(this.dialog.title === '新建'){
-					let item = { 
-						name: '',
-						marginLeft: 10,
-						marginTop: 10,
-						width: 50,
-						height: 50,
-						reportId: this.reportId,
-						setting: JSON.stringify(this.dialog.option)
-					}
-					this.$http.post('/element/add',MyUtils.flatten(item)).then(res => {
-						if(res.code === 20000){
-							this.$message({ type: 'success', message: res.message })
-							this.list.push(item)
-						}
-					})
-				}else if(this.dialog.title === '编辑'){
+				if(this.dialog.title === '编辑'){
 					this.dialog.control.setting = JSON.stringify(this.dialog.option)
 					this.$http.post('/element/update', MyUtils.flatten(this.dialog.control)).then(res => {
 						if(res.code === 20000){
@@ -118,6 +133,7 @@
 				this.dialog.visiable = true
 				this.dialog.title = '编辑'
 				this.dialog.control = item 
+				this.transfer.value = item.fields.map( f => f.id)
 			},
 			positionChange(e,index) { // 元素的位置和大小发生变化
 				this.$http.post('/element/update',MyUtils.flatten(e)).then( res => {
@@ -131,6 +147,33 @@
 				this.$http.post('/element/update',MyUtils.flatten(this.dialog.control)).then(res => {
 					console.log('修改')
 				})
+			},
+			setOption(id) {
+				let a = this.tables.filter(table => table.id === id)
+				this.transfer.fields.splice(0,this.transfer.fields.length)
+				for(let i in a[0].fields){
+					this.transfer.fields.push(a[0].fields[i]) 
+				}
+			},
+			modifyField(val, orient, x){ // 修改元素中的字段
+				for(let i in x){
+					this.$http.post(orient === 'right' ? '/element/add/data':'/element/remove/field',{ 
+						elementId: this.dialog.control.id,
+						viewFieldId: x[i]}).then( res => {
+							console.log((res.message))
+							if(orient === 'right'){
+								// 添加的字段
+								let array = this.transfer.fields.filter( d => d.id === x[i])
+								// 将添加的字段加入到element的fields中
+								for(let i in array){
+									this.dialog.control.fields.push(array[i])
+								}
+							}else{
+								// 移除element中的字段
+								this.dialog.control.fields = this.dialog.control.fields.filter(d => d.id !== x[i])
+							}
+						})
+				}
 			}
 		}
 	}
