@@ -12,7 +12,7 @@
 					<el-button type="infor" size="mini">编辑字段</el-button>
 				</el-form>
 				
-				<el-table :data="fields" height="200px" border row-key="id" :load="load" :lazy="true" size="mini" >
+				<el-table :data="fields" height="200px" border row-key="id" :load="load" :lazy="true" size="mini" @cell-dblclick="modify" >
 					<el-table-column prop="fieldName" label="字段名" fixed="left" :show-overflow-tooltip="true"></el-table-column>
 					<el-table-column prop="fieldZhChName" label="中文名" :show-overflow-tooltip="true"></el-table-column>
 					<el-table-column prop="dataType" label="数据类型"></el-table-column>
@@ -104,11 +104,11 @@
 			load(tree, treeNode, resolve) {
 				
 			},
-			tabClick(tab) { 
-				if(tab.index == 0){
+			tabClick(tab) { 			// 标签页的点击事件，不同的标签页加载不同的数据
+				if(tab.index == 0){		// 第一页，加载视图中的字段
 					this.getFields()
 				}
-				if(tab.index == 1 ){
+				if(tab.index == 1 ){	// 第二页，加载视图相关的其他数据
 					this.$http.get('/dataset/view/info/'+this.viewInfo.id).then(res => {
 						if(res.code === 20000){
 							this.viewModel = res.data
@@ -139,6 +139,24 @@
 						}
 					})
 				}
+			},
+			modify(row, column, cell, event) {	// 标签页1中的表格双击事件，修改单元格的内容
+				debugger
+				let value = row[column.property]
+				this.$prompt('修改','修改',{
+					inputValue: value,
+				}).then( ({value} ) => {
+					let tmp = { ...row }
+					tmp[column.property] = value
+					this.$http.post('/dataset/view/field/update', MyUtils.flatten(tmp)).then(res => {
+						if(res.code === 20000){
+							this.$message({ type: 'success', message: res.message })
+							row = tmp
+						}else{
+							this.$message({ type: 'error', message: res.message})
+						}
+					})
+				})
 			}
 		}
 	}

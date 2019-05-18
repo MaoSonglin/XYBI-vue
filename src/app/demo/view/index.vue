@@ -44,13 +44,14 @@
 		<!-- end of create view -->
 		
 		<!-- dialog for show information of a view table-->
-		<el-dialog :title="dialog2.title" :visible="dialog2.visible" top="40px">
+		<el-dialog :title="dialog2.title" :visible="dialog2.visible" top="40px" 
+		:before-close="() => { dialog2.visible = false }">
 			<div class="dialog-content" v-if="dialog2.view">
 				<ViewManage :viewInfo="dialog2.view"></ViewManage>
 			</div>
 			<span slot="footer" class="dialog-footer">
 				<el-button @click="() => { dialog2.visible = false }" size="mini">取消</el-button>
-				<el-button @click="" size="mini" type="primary">确定</el-button>
+				<el-button @click="save" size="mini" type="primary">确定</el-button>
 			</span>
 		</el-dialog>
 		<!-- end of show view table information -->
@@ -151,6 +152,9 @@
 				this.dialog2.visible = true
 				this.dialog2.view = view
 				this.dialog2.title = view.viewName
+			},
+			save() {
+				// 保存修改
 			}
 		}
 	}

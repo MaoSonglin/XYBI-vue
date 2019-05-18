@@ -67,7 +67,9 @@ export default {
     'ds-config': '配置数据源',
 		'demo-manage': '数据包管理',
 		'view-page-index': '数据视图',
-		'demo-list': '数据包列表'
+		'demo-list': '数据包列表',
+		'report': '报表管理',
+		'design': '报表设计'
   },
   navbar: {
     logOut: '退出登录',

@@ -155,7 +155,28 @@ export const asyncRoutes = [
 				name: 'demo/view',
 				hidden: true,
 				component: () => import('@/app/demo/view'),
-				meta: { title: 'view-page-index', roles: ['admin','edit']}
+				meta: { title: 'view-page-index', roles: ['admin','editor']}
+			}
+		]
+	},
+	{
+		path: '/report',
+		component: Layout,
+		redirect: '/report/index',
+		alwaysShow: false,
+		meta: { title: 'report', icon: 'chart', roles: ['admin', 'editor']},
+		children: [
+			{
+				path: 'index',
+				component: () => import('@/app/report'),
+				name: 'report/index',
+				meta: { title: 'report', roles: ['admin', 'editor']}
+			},
+			{
+				path: 'design',
+				hidden: true,
+				meta: { title: 'design',  roles: ['admin', 'editor']},
+				component: () => import('@/app/report/design')
 			}
 		]
 	},
