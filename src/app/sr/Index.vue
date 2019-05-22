@@ -53,7 +53,8 @@
 			</template>
 		</split-pane>
 		<el-dialog :title="dialog.title" :visible="dialog.visible" width="60%" :before-close="handleClose">
-			<JdbcForm :ds="dialog.data" ></JdbcForm>
+			<JdbcForm :ds="dialog.data" v-if="dialog.data.databaseType === 'jdbc'"></JdbcForm>
+			<TextFileSource :data="dialog.data" v-if="dialog.data.databaseType !== 'jdbc'" ></TextFileSource>
 			<span slot="footer" class="dialog-footer">
 				<el-button @click="() => { dialog.visible = false}">取消</el-button>
 				<el-button @click="confirm">确定</el-button>
@@ -68,10 +69,11 @@ import DataSourceForm from './DataSourceForm.vue'
 import TableInfoForm from './TableInfoForm.vue'
 import TableFieldInfo from './TableFieldInfo.vue'
 import JdbcForm from './JdbcFrom.vue'
+import TextFileSource from './TextFileSource'
 
 export default {
     name: 'datasource',
-    components: {splitPane, Pagination, DataSourceForm, TableInfoForm, TableFieldInfo, JdbcForm},
+    components: {splitPane, Pagination, DataSourceForm, TableInfoForm, TableFieldInfo, JdbcForm, TextFileSource},
     data() {
         return {
 			leftpaneldata: {
@@ -161,6 +163,7 @@ export default {
 				})
 				if(res.code === 20000){
 					pkg.success()
+					this.getList()
 				}else{
 					pkg.fail()
 				}
@@ -180,6 +183,7 @@ export default {
 						type: 'info'
 					})
 					// TODO 删除节点
+					this.getList()
 				}).catch(error => {
 					
 				})
@@ -189,28 +193,35 @@ export default {
 		showAddDataSourceDialog(event){	//新建数据源
 			this.dialog.title = '添加'+event+'数据源';
 			this.dialog.visible = true
+			this.dialog.data.databaseType = event
+			debugger
 		},
 		handleClose(done) { // 模态框关闭时间
 			this.$confirm('确认关闭？')
 			  .then(_ => {
 				done();
 				this.dialog.visible = false
+				this.dialog.data = {}
 			  }).catch(_ => {});
 		},
 		confirm() {			// 保存表单
 			if(this.dialog.data.validate && this.dialog.data.validate()){
 				this.$confirm('确定要提交吗？','保存').then(_ => {
 					this.$http.post('/db/config',this.dialog.data).then(res => {
-						if(res.code === 2000){
+						if(res.code === 20000){
 							this.$confirm("数据源添加完成，是否立即读取数据源结构？",'读取结构').then(_ => {
 								this.readStructure(res.data)
 							})
+							this.getList()
 						}
 						else{
 							this.$message({ type: 'error', message: res.message, title: '添加数据源'})
 						}
+						this.dialog.data = {}
+						this.dialog.visible = false
 					})
 				})
+				
 			}
 		},
 		readStructure(data) { // 读取数据源结构
@@ -227,6 +238,7 @@ export default {
 				})
 				if(res.code === 20000){
 					data.read = true
+					this.getList()
 				}
 				loading.close()
 			}).catch(_ => loading.close())
